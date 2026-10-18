@@ -25,7 +25,7 @@ public class ClienteService {
         if (repository.existsByEmail(dto.email())) {
             throw new RegraNegocioException("Já existe um cliente com este e-mail" + dto.email());
         }
-        Cliente salvo = repository.save(new Cliente(dto.email(), dto.nome(), dto.telefone()));
+        Cliente salvo = repository.save(new Cliente(dto.nome(), dto.email(), dto.telefone()));
         return ClienteResponse.de(salvo);
     }
 
