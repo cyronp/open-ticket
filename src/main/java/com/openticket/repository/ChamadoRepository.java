@@ -10,4 +10,8 @@ public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
     @Override
     @EntityGraph(attributePaths = {"cliente", "categoria", "tecnico"})
     List<Chamado> findAll();
+
+    boolean existsByClienteId(Long clienteId);
+    boolean existsByCategoriaId(Long categoriaId);
+    boolean existsByTecnicoId(Long tecnicoId);
 }

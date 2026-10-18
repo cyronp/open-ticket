@@ -6,6 +6,7 @@ import com.openticket.entity.Categoria;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.exception.RegraNegocioException;
 import com.openticket.repository.CategoriaRepository;
+import com.openticket.repository.ChamadoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,9 +15,11 @@ import java.util.List;
 @Service
 public class CategoriaService {
     private final CategoriaRepository repository;
+    private final ChamadoRepository chamadoRepository;
 
-    public CategoriaService(CategoriaRepository repository) {
+    public CategoriaService(CategoriaRepository repository, ChamadoRepository chamadoRepository) {
         this.repository = repository;
+        this.chamadoRepository = chamadoRepository;
     }
 
     @Transactional
@@ -52,7 +55,11 @@ public class CategoriaService {
 
     @Transactional
     public void excluir(Long id) {
-        repository.delete(buscarEntity(id));
+        Categoria categoria = buscarEntity(id);
+        if (chamadoRepository.existsByCategoriaId(id)) {
+            throw new RegraNegocioException("Categoria " + id + " possui chamados vinculados e não pode ser excluída!");
+        }
+        repository.delete(categoria);
     }
 
     private Categoria buscarEntity(Long id) {

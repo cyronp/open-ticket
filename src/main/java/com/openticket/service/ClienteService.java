@@ -5,6 +5,7 @@ import com.openticket.dto.ClienteResponse;
 import com.openticket.entity.Cliente;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.exception.RegraNegocioException;
+import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
 import jakarta.websocket.ClientEndpoint;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,11 @@ import java.util.List;
 @Service
 public class ClienteService {
     private final ClienteRepository repository;
+    private final ChamadoRepository chamadoRepository;
 
-    public ClienteService(ClienteRepository repository) {
+    public ClienteService(ClienteRepository repository, ChamadoRepository chamadoRepository) {
         this.repository = repository;
+        this.chamadoRepository = chamadoRepository;
     }
 
     @Transactional
@@ -54,7 +57,11 @@ public class ClienteService {
 
     @Transactional
     public void excluir(Long id) {
-        repository.delete(buscarEntity(id));
+        Cliente cliente = buscarEntity(id);
+        if (chamadoRepository.existsByClienteId(id)) {
+            throw new RegraNegocioException("Cliente " + id + " possui chamados vinculados e não pode ser excluído!");
+        }
+        repository.delete(cliente);
     }
 
     private Cliente buscarEntity(Long id) {

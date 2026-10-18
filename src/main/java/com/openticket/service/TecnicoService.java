@@ -5,6 +5,7 @@ import com.openticket.dto.TecnicoResponse;
 import com.openticket.entity.Tecnico;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.exception.RegraNegocioException;
+import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.TecnicoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,11 @@ import java.util.List;
 @Service
 public class TecnicoService {
     private final TecnicoRepository repository;
+    private final ChamadoRepository chamadoRepository;
 
-    public TecnicoService(TecnicoRepository repository) {
+    public TecnicoService(TecnicoRepository repository, ChamadoRepository chamadoRepository) {
         this.repository = repository;
+        this.chamadoRepository = chamadoRepository;
     }
 
     @Transactional
@@ -53,7 +56,11 @@ public class TecnicoService {
 
     @Transactional
     public void excluir(Long id) {
-        repository.delete(buscarEntity(id));
+        Tecnico tecnico = buscarEntity(id);
+        if (chamadoRepository.existsByTecnicoId(id)) {
+            throw new RegraNegocioException("Técnico " + id + " possui chamados vinculados e não pode ser excluído!");
+        }
+        repository.delete(tecnico);
     }
 
     private Tecnico buscarEntity(Long id) {
