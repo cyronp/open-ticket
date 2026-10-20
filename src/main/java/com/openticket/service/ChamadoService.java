@@ -73,10 +73,15 @@ public class ChamadoService {
     }
 
     @Transactional
-    public ChamadoResponse atribuir(Long id, @Valid @org.jetbrains.annotations.UnknownNullability ChamadoAtribuirRequest dto) {
+    public ChamadoResponse atribuir(Long id, @Valid ChamadoAtribuirRequest dto) {
         Chamado chamado = buscarEntity(id);
 
-        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        if (chamado.getStatus() == StatusChamado.FECHADO) {
+            
+        }
+
+        chamado.setTecnico(buscarTecnico(dto.idTecnico()));
+
         return ChamadoResponse.de(chamado);
     }
 

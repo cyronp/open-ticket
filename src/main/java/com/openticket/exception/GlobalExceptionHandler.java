@@ -28,6 +28,11 @@ public class GlobalExceptionHandler {
         return montar(HttpStatus.BAD_REQUEST, "Dados inválidos", detalhes);
     }
 
+    @ExceptionHandler(ChamadoFechado.class)
+    public ResponseEntity<ErroResposta> chamadoFechado(ChamadoFechado ex) {
+        return montar(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of());
+    }
+
     private ResponseEntity<ErroResposta> montar(
             HttpStatus status, String erro, List<String> detalhes
     ) {
