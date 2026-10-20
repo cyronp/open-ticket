@@ -1,5 +1,6 @@
 package com.openticket.service;
 
+import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
@@ -9,6 +10,7 @@ import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
 import com.openticket.repository.TecnicoRepository;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +69,14 @@ public class ChamadoService {
         chamado.setCategoria(buscarCategoria(dto.categoriaId()));
         chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
         atualizarStatus(chamado, dto.status());
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse atribuir(Long id, @Valid @org.jetbrains.annotations.UnknownNullability ChamadoAtribuirRequest dto) {
+        Chamado chamado = buscarEntity(id);
+
+        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
         return ChamadoResponse.de(chamado);
     }
 
