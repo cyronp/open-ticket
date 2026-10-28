@@ -3,6 +3,8 @@ package com.openticket.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "chamados")
@@ -42,6 +44,11 @@ public class Chamado {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tecnico_id")
     private Tecnico tecnico;
+
+    // Comentários pertencem ao chamado: excluir o chamado exclui os comentários
+    @OneToMany(mappedBy = "chamado", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("dataCriacao ASC")
+    private List<Comentario> comentarios = new ArrayList<>();
 
     public Chamado() {}
 
@@ -135,5 +142,9 @@ public class Chamado {
 
     public void setTecnico(Tecnico tecnico) {
         this.tecnico = tecnico;
+    }
+
+    public List<Comentario> getComentarios() {
+        return comentarios;
     }
 }
