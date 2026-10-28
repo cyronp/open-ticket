@@ -61,7 +61,7 @@ public class ChamadoService {
 
     @Transactional
     public ChamadoResponse atualizar(Long id, ChamadoAtualizacaoRequest dto) {
-        Chamado chamado = buscarEntity(id);
+        Chamado chamado = buscarEntityAberto(id);
 
         chamado.setTitulo(dto.titulo());
         chamado.setDescricao(dto.descricao());
@@ -74,14 +74,9 @@ public class ChamadoService {
 
     @Transactional
     public ChamadoResponse atribuir(Long id, ChamadoAtribuirRequest dto) {
-        Chamado chamado = buscarEntity(id);
-
-        if (chamado.getStatus() == StatusChamado.FECHADO) {
-            throw new ChamadoFechadoException(id);
-        }
+        Chamado chamado = buscarEntityAberto(id);
 
         chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
-
         return ChamadoResponse.de(chamado);
     }
 
@@ -90,18 +85,24 @@ public class ChamadoService {
         repository.delete(buscarEntity(id));
     }
 
-    // Ao fechar registra a data de fechamento; ao reabrir, limpa
+    // Chamado fechado é estado final, então só chega aqui chamado ainda não fechado
     private void atualizarStatus(Chamado chamado, StatusChamado novoStatus) {
-        if (novoStatus == StatusChamado.FECHADO && chamado.getStatus() != StatusChamado.FECHADO) {
+        if (novoStatus == StatusChamado.FECHADO) {
             chamado.setDataFechamento(LocalDateTime.now());
-        } else if (novoStatus != StatusChamado.FECHADO) {
-            chamado.setDataFechamento(null);
         }
         chamado.setStatus(novoStatus);
     }
 
     private Chamado buscarEntity(Long id) {
         return repository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Chamado " + id + " não encontrado!"));
+    }
+
+    private Chamado buscarEntityAberto(Long id) {
+        Chamado chamado = buscarEntity(id);
+        if (chamado.getStatus() == StatusChamado.FECHADO) {
+            throw new ChamadoFechadoException(id);
+        }
+        return chamado;
     }
 
     private Cliente buscarCliente(Long id) {
