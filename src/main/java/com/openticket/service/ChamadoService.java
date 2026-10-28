@@ -4,6 +4,7 @@ import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
+import com.openticket.dto.ChamadoStatusRequest;
 import com.openticket.entity.*;
 import com.openticket.exception.ChamadoFechadoException;
 import com.openticket.exception.RecursoNaoEncontradoException;
@@ -77,6 +78,14 @@ public class ChamadoService {
         Chamado chamado = buscarEntityAberto(id);
 
         chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse alterarStatus(Long id, ChamadoStatusRequest dto) {
+        Chamado chamado = buscarEntityAberto(id);
+
+        atualizarStatus(chamado, dto.status());
         return ChamadoResponse.de(chamado);
     }
 
