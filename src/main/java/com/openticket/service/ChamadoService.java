@@ -2,6 +2,7 @@ package com.openticket.service;
 
 import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
+import com.openticket.dto.ChamadoDetalheResponse;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ChamadoStatusRequest;
@@ -79,8 +80,8 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public ChamadoResponse buscar(Long id) {
-        return ChamadoResponse.de(buscarEntity(id));
+    public ChamadoDetalheResponse buscar(Long id) {
+        return ChamadoDetalheResponse.de(buscarEntity(id));
     }
 
     @Transactional

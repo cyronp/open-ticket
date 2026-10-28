@@ -2,6 +2,7 @@ package com.openticket.controller;
 
 import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
+import com.openticket.dto.ChamadoDetalheResponse;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ChamadoStatusRequest;
@@ -46,7 +47,7 @@ public class ChamadoController {
     }
 
     @GetMapping("/{id}")
-    public ChamadoResponse buscar(@PathVariable Long id) {
+    public ChamadoDetalheResponse buscar(@PathVariable Long id) {
         return service.buscar(id);
     }
 
