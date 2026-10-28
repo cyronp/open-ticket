@@ -1,15 +1,24 @@
 package com.openticket.repository;
 
 import com.openticket.entity.Chamado;
+import com.openticket.entity.Prioridade;
+import com.openticket.entity.StatusChamado;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
+import org.springframework.data.jpa.repository.Query;
 
 public interface ChamadoRepository extends JpaRepository<Chamado, Long> {
-    @Override
+    // Filtro nulo é ignorado, então dá para combinar qualquer um deles
     @EntityGraph(attributePaths = {"cliente", "categoria", "tecnico"})
-    List<Chamado> findAll();
+    @Query("""
+            select c from Chamado c
+            where (:status is null or c.status = :status)
+              and (:prioridade is null or c.prioridade = :prioridade)
+              and (:clienteId is null or c.cliente.id = :clienteId)
+            """)
+    Page<Chamado> filtrar(StatusChamado status, Prioridade prioridade, Long clienteId, Pageable pageable);
 
     boolean existsByClienteId(Long clienteId);
     boolean existsByCategoriaId(Long categoriaId);
