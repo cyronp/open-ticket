@@ -5,6 +5,8 @@ import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ChamadoStatusRequest;
+import com.openticket.dto.ComentarioRequest;
+import com.openticket.dto.ComentarioResponse;
 import com.openticket.entity.*;
 import com.openticket.exception.ChamadoFechadoException;
 import com.openticket.exception.OrdenacaoInvalidaException;
@@ -12,6 +14,7 @@ import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
+import com.openticket.repository.ComentarioRepository;
 import com.openticket.repository.TecnicoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,17 +37,20 @@ public class ChamadoService {
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
     private final TecnicoRepository tecnicoRepository;
+    private final ComentarioRepository comentarioRepository;
 
     public ChamadoService(
             ChamadoRepository repository,
             ClienteRepository clienteRepository,
             CategoriaRepository categoriaRepository,
-            TecnicoRepository tecnicoRepository
+            TecnicoRepository tecnicoRepository,
+            ComentarioRepository comentarioRepository
     ) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.categoriaRepository = categoriaRepository;
         this.tecnicoRepository = tecnicoRepository;
+        this.comentarioRepository = comentarioRepository;
     }
 
     @Transactional
@@ -75,6 +81,14 @@ public class ChamadoService {
     @Transactional(readOnly = true)
     public ChamadoResponse buscar(Long id) {
         return ChamadoResponse.de(buscarEntity(id));
+    }
+
+    @Transactional
+    public ComentarioResponse comentar(Long id, ComentarioRequest dto) {
+        Chamado chamado = buscarEntityAberto(id);
+
+        Comentario comentario = comentarioRepository.save(new Comentario(dto.texto(), dto.autor(), chamado));
+        return ComentarioResponse.de(comentario);
     }
 
     @Transactional
