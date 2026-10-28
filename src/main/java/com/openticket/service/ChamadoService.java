@@ -12,11 +12,12 @@ import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
 import com.openticket.repository.TecnicoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class ChamadoService {
@@ -51,8 +52,8 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChamadoResponse> listar() {
-        return repository.findAll().stream().map(ChamadoResponse::de).toList();
+    public Page<ChamadoResponse> listar(StatusChamado status, Prioridade prioridade, Long clienteId, Pageable pageable) {
+        return repository.filtrar(status, prioridade, clienteId, pageable).map(ChamadoResponse::de);
     }
 
     @Transactional(readOnly = true)
