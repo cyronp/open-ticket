@@ -1,8 +1,10 @@
 package com.openticket.controller;
 
+import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
+import com.openticket.dto.ChamadoStatusRequest;
 import com.openticket.service.ChamadoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +44,22 @@ public class ChamadoController {
             @Valid @RequestBody ChamadoAtualizacaoRequest dto
     ) {
         return service.atualizar(id, dto);
+    }
+
+    @PatchMapping("/{id}/atribuir")
+    public ChamadoResponse atribuir(
+            @PathVariable Long id,
+            @Valid @RequestBody ChamadoAtribuirRequest dto
+    ) {
+        return service.atribuir(id, dto);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ChamadoResponse alterarStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody ChamadoStatusRequest dto
+    ) {
+        return service.alterarStatus(id, dto);
     }
 
     @DeleteMapping("/{id}")
