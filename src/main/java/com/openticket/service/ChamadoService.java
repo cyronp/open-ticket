@@ -7,6 +7,7 @@ import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ChamadoStatusRequest;
 import com.openticket.entity.*;
 import com.openticket.exception.ChamadoFechadoException;
+import com.openticket.exception.OrdenacaoInvalidaException;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
@@ -14,13 +15,21 @@ import com.openticket.repository.ClienteRepository;
 import com.openticket.repository.TecnicoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class ChamadoService {
+    private static final Set<String> CAMPOS_ORDENACAO = new LinkedHashSet<>(List.of(
+            "id", "titulo", "dataAbertura", "dataFechamento", "prioridade", "status", "cliente.nome", "categoria.nome"
+    ));
+
     private final ChamadoRepository repository;
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
@@ -53,6 +62,7 @@ public class ChamadoService {
 
     @Transactional(readOnly = true)
     public Page<ChamadoResponse> listar(StatusChamado status, Prioridade prioridade, Long clienteId, Pageable pageable) {
+        validarOrdenacao(pageable.getSort());
         return repository.filtrar(status, prioridade, clienteId, pageable).map(ChamadoResponse::de);
     }
 
@@ -107,6 +117,16 @@ public class ChamadoService {
             chamado.setDataFechamento(LocalDateTime.now());
         }
         chamado.setStatus(novoStatus);
+    }
+
+    // O sort vai direto para o JPQL, então só aceita campos conhecidos.
+    // tecnico.nome fica de fora porque o join implícito esconderia chamados sem técnico
+    private void validarOrdenacao(Sort sort) {
+        for (Sort.Order ordem : sort) {
+            if (!CAMPOS_ORDENACAO.contains(ordem.getProperty())) {
+                throw new OrdenacaoInvalidaException(ordem.getProperty(), CAMPOS_ORDENACAO);
+            }
+        }
     }
 
     private Chamado buscarEntity(Long id) {
