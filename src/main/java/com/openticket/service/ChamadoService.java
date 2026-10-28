@@ -5,7 +5,7 @@ import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
 import com.openticket.entity.*;
-import com.openticket.exception.ChamadoFechado;
+import com.openticket.exception.ChamadoFechadoException;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
@@ -77,7 +77,7 @@ public class ChamadoService {
         Chamado chamado = buscarEntity(id);
 
         if (chamado.getStatus() == StatusChamado.FECHADO) {
-            throw new ChamadoFechado("Chamado ja foi finalizado.");
+            throw new ChamadoFechadoException(id);
         }
 
         chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
