@@ -11,7 +11,6 @@ import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
 import com.openticket.repository.TecnicoRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,14 +73,14 @@ public class ChamadoService {
     }
 
     @Transactional
-    public ChamadoResponse atribuir(Long id, @Valid ChamadoAtribuirRequest dto) {
+    public ChamadoResponse atribuir(Long id, ChamadoAtribuirRequest dto) {
         Chamado chamado = buscarEntity(id);
 
         if (chamado.getStatus() == StatusChamado.FECHADO) {
             throw new ChamadoFechado("Chamado ja foi finalizado.");
         }
 
-        chamado.setTecnico(buscarTecnico(dto.idTecnico()));
+        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
 
         return ChamadoResponse.de(chamado);
     }

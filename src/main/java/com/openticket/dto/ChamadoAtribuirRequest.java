@@ -1,11 +1,8 @@
 package com.openticket.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
+import jakarta.validation.constraints.NotNull;
 
 public record ChamadoAtribuirRequest(
-        @NotBlank(message = "Técnico é obrigatório")
-        Long idTecnico
-        
-) {
-}
+        @NotNull(message = "Técnico é obrigatório!")
+        Long tecnicoId
+) {}
