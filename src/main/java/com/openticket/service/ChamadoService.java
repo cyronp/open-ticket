@@ -57,6 +57,12 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ChamadoResponse> listarPorCliente(Long clienteId, StatusChamado status, Prioridade prioridade, Pageable pageable) {
+        buscarCliente(clienteId);
+        return listar(status, prioridade, clienteId, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public ChamadoResponse buscar(Long id) {
         return ChamadoResponse.de(buscarEntity(id));
     }
