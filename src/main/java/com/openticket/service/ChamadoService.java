@@ -1,22 +1,35 @@
 package com.openticket.service;
 
+import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
+import com.openticket.dto.ChamadoStatusRequest;
 import com.openticket.entity.*;
+import com.openticket.exception.ChamadoFechadoException;
+import com.openticket.exception.OrdenacaoInvalidaException;
 import com.openticket.exception.RecursoNaoEncontradoException;
 import com.openticket.repository.CategoriaRepository;
 import com.openticket.repository.ChamadoRepository;
 import com.openticket.repository.ClienteRepository;
 import com.openticket.repository.TecnicoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ChamadoService {
+    private static final Set<String> CAMPOS_ORDENACAO = new LinkedHashSet<>(List.of(
+            "id", "titulo", "dataAbertura", "dataFechamento", "prioridade", "status", "cliente.nome", "categoria.nome"
+    ));
+
     private final ChamadoRepository repository;
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
@@ -48,8 +61,15 @@ public class ChamadoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChamadoResponse> listar() {
-        return repository.findAll().stream().map(ChamadoResponse::de).toList();
+    public Page<ChamadoResponse> listar(StatusChamado status, Prioridade prioridade, Long clienteId, Pageable pageable) {
+        validarOrdenacao(pageable.getSort());
+        return repository.filtrar(status, prioridade, clienteId, pageable).map(ChamadoResponse::de);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChamadoResponse> listarPorCliente(Long clienteId, StatusChamado status, Prioridade prioridade, Pageable pageable) {
+        buscarCliente(clienteId);
+        return listar(status, prioridade, clienteId, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +79,7 @@ public class ChamadoService {
 
     @Transactional
     public ChamadoResponse atualizar(Long id, ChamadoAtualizacaoRequest dto) {
-        Chamado chamado = buscarEntity(id);
+        Chamado chamado = buscarEntityAberto(id);
 
         chamado.setTitulo(dto.titulo());
         chamado.setDescricao(dto.descricao());
@@ -71,22 +91,54 @@ public class ChamadoService {
     }
 
     @Transactional
+    public ChamadoResponse atribuir(Long id, ChamadoAtribuirRequest dto) {
+        Chamado chamado = buscarEntityAberto(id);
+
+        chamado.setTecnico(buscarTecnico(dto.tecnicoId()));
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
+    public ChamadoResponse alterarStatus(Long id, ChamadoStatusRequest dto) {
+        Chamado chamado = buscarEntityAberto(id);
+
+        atualizarStatus(chamado, dto.status());
+        return ChamadoResponse.de(chamado);
+    }
+
+    @Transactional
     public void excluir(Long id) {
         repository.delete(buscarEntity(id));
     }
 
-    // Ao fechar registra a data de fechamento; ao reabrir, limpa
+    // Chamado fechado é estado final, então só chega aqui chamado ainda não fechado
     private void atualizarStatus(Chamado chamado, StatusChamado novoStatus) {
-        if (novoStatus == StatusChamado.FECHADO && chamado.getStatus() != StatusChamado.FECHADO) {
+        if (novoStatus == StatusChamado.FECHADO) {
             chamado.setDataFechamento(LocalDateTime.now());
-        } else if (novoStatus != StatusChamado.FECHADO) {
-            chamado.setDataFechamento(null);
         }
         chamado.setStatus(novoStatus);
     }
 
+    // O sort vai direto para o JPQL, então só aceita campos conhecidos.
+    // tecnico.nome fica de fora porque o join implícito esconderia chamados sem técnico
+    private void validarOrdenacao(Sort sort) {
+        for (Sort.Order ordem : sort) {
+            if (!CAMPOS_ORDENACAO.contains(ordem.getProperty())) {
+                throw new OrdenacaoInvalidaException(ordem.getProperty(), CAMPOS_ORDENACAO);
+            }
+        }
+    }
+
     private Chamado buscarEntity(Long id) {
         return repository.findById(id).orElseThrow(() -> new RecursoNaoEncontradoException("Chamado " + id + " não encontrado!"));
+    }
+
+    private Chamado buscarEntityAberto(Long id) {
+        Chamado chamado = buscarEntity(id);
+        if (chamado.getStatus() == StatusChamado.FECHADO) {
+            throw new ChamadoFechadoException(id);
+        }
+        return chamado;
     }
 
     private Cliente buscarCliente(Long id) {

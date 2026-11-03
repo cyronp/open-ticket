@@ -1,10 +1,18 @@
 package com.openticket.controller;
 
+import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ClienteRequest;
 import com.openticket.dto.ClienteResponse;
+import com.openticket.entity.Prioridade;
+import com.openticket.entity.StatusChamado;
+import com.openticket.service.ChamadoService;
 import com.openticket.service.ClienteService;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +23,11 @@ import java.util.List;
 @RequestMapping("/clientes")
 public class ClienteController {
     private final ClienteService service;
+    private final ChamadoService chamadoService;
 
-    public ClienteController(ClienteService service) {
+    public ClienteController(ClienteService service, ChamadoService chamadoService) {
         this.service = service;
+        this.chamadoService = chamadoService;
     }
 
     @PostMapping
@@ -37,6 +47,16 @@ public class ClienteController {
             @PathVariable Long id
     ) {
         return service.buscar(id);
+    }
+
+    @GetMapping("/{id}/chamados")
+    public Page<ChamadoResponse> listarChamados(
+            @PathVariable Long id,
+            @RequestParam(required = false) StatusChamado status,
+            @RequestParam(required = false) Prioridade prioridade,
+            @PageableDefault(sort = "dataAbertura", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        return chamadoService.listarPorCliente(id, status, prioridade, pageable);
     }
 
     @PutMapping("/{id}")
