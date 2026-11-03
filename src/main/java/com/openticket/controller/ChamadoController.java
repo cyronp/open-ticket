@@ -2,9 +2,12 @@ package com.openticket.controller;
 
 import com.openticket.dto.ChamadoAtribuirRequest;
 import com.openticket.dto.ChamadoAtualizacaoRequest;
+import com.openticket.dto.ChamadoDetalheResponse;
 import com.openticket.dto.ChamadoRequest;
 import com.openticket.dto.ChamadoResponse;
 import com.openticket.dto.ChamadoStatusRequest;
+import com.openticket.dto.ComentarioRequest;
+import com.openticket.dto.ComentarioResponse;
 import com.openticket.entity.Prioridade;
 import com.openticket.entity.StatusChamado;
 import com.openticket.service.ChamadoService;
@@ -44,8 +47,17 @@ public class ChamadoController {
     }
 
     @GetMapping("/{id}")
-    public ChamadoResponse buscar(@PathVariable Long id) {
+    public ChamadoDetalheResponse buscar(@PathVariable Long id) {
         return service.buscar(id);
+    }
+
+    @PostMapping("/{id}/comentarios")
+    public ResponseEntity<ComentarioResponse> comentar(
+            @PathVariable Long id,
+            @Valid @RequestBody ComentarioRequest dto
+    ) {
+        ComentarioResponse criado = service.comentar(id, dto);
+        return ResponseEntity.created(URI.create("/chamados/" + id)).body(criado);
     }
 
     @PutMapping("/{id}")
