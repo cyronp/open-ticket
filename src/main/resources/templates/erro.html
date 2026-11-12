@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${titulo}, '', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="error-page">
+        <span class="error-code" th:text="${codigo}">404</span>
+        <h1 class="page-title" th:text="${titulo}">Não encontrado</h1>
+        <p class="muted" th:text="${mensagem}">O recurso solicitado não existe.</p>
+        <a class="btn btn-outline" th:href="@{/app}" style="margin-top: 8px;">
+            <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> Voltar para a visão geral
+        </a>
+    </div>
+</th:block>
+</body>
+</html>
