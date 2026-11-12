@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Visão geral', 'painel', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Visão geral</h1>
+            <p class="page-description">Acompanhe os chamados e os cadastros do sistema.</p>
+        </div>
+        <a class="btn" th:href="@{/app/chamados/novo}">
+            <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo chamado
+        </a>
+    </div>
+
+    <div class="stats">
+        <a class="card stat" th:each="item : ${porStatus}" th:href="@{/app/chamados(status=${item.key})}">
+            <span class="stat-label">
+                <span th:replace="~{fragments/badges :: status(${item.key})}"></span>
+                <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg>
+            </span>
+            <span class="stat-value" th:text="${item.value}">0</span>
+        </a>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="card-header row">
+                <div>
+                    <h2 class="card-title">Chamados recentes</h2>
+                    <p class="card-description">Os últimos cinco chamados abertos.</p>
+                </div>
+                <a class="btn btn-outline btn-sm" th:href="@{/app/chamados}">
+                    Ver todos <svg th:replace="~{fragments/icons :: icon('arrow-right')}"></svg>
+                </a>
+            </div>
+            <div class="card-content" style="padding-left: 8px; padding-right: 8px;">
+                <div class="table-wrap" th:unless="${#lists.isEmpty(recentes)}">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Título</th>
+                            <th>Cliente</th>
+                            <th>Status</th>
+                            <th>Prioridade</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="c : ${recentes}">
+                            <td class="num" th:text="${c.id}">1</td>
+                            <td><a class="link" th:href="@{/app/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Título</a></td>
+                            <td th:text="${c.cliente.nome}">Cliente</td>
+                            <td><span th:replace="~{fragments/badges :: status(${c.status})}"></span></td>
+                            <td><span th:replace="~{fragments/badges :: prioridade(${c.prioridade})}"></span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty" th:if="${#lists.isEmpty(recentes)}">
+                    <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('inbox')}"></svg></div>
+                    <p class="empty-title">Nenhum chamado ainda</p>
+                    <p class="muted">Os chamados abertos aparecem aqui.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Cadastros</h2>
+                <p class="card-description">Base usada para abrir chamados.</p>
+            </div>
+            <div class="card-content">
+                <ul class="list">
+                    <li>
+                        <a th:href="@{/app/clientes}">Clientes</a>
+                        <span class="badge badge-outline plain" th:text="${totalClientes}">0</span>
+                    </li>
+                    <li>
+                        <a th:href="@{/app/tecnicos}">Técnicos</a>
+                        <span class="badge badge-outline plain" th:text="${totalTecnicos}">0</span>
+                    </li>
+                    <li>
+                        <a th:href="@{/app/categorias}">Categorias</a>
+                        <span class="badge badge-outline plain" th:text="${totalCategorias}">0</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>
