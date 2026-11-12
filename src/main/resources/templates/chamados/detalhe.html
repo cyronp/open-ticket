@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${'Chamado #' + chamado.id}, 'chamados', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo" th:with="fechado=${chamado.status.name() == 'FECHADO'}">
+    <a class="back-link" th:href="@{/app/chamados}">
+        <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> Chamados
+    </a>
+
+    <div class="page-header">
+        <div>
+            <div class="actions" style="margin-bottom: 8px;">
+                <span class="badge badge-outline plain" th:text="${'#' + chamado.id}">#1</span>
+                <span th:replace="~{fragments/badges :: status(${chamado.status})}"></span>
+                <span th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></span>
+            </div>
+            <h1 class="page-title" th:text="${chamado.titulo}">Sem internet no escritório</h1>
+            <p class="page-description">
+                Aberto por <th:block th:text="${chamado.cliente.nome}">Ana Souza</th:block>
+                em <th:block th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy ''às'' HH:mm')}">01/01/2026 às 10:00</th:block>
+            </p>
+        </div>
+        <div class="actions">
+            <a class="btn btn-outline" th:unless="${fechado}" th:href="@{/app/chamados/{id}/editar(id=${chamado.id})}">
+                <svg th:replace="~{fragments/icons :: icon('pencil')}"></svg> Editar
+            </a>
+            <form method="post" th:action="@{/app/chamados/{id}/excluir(id=${chamado.id})}"
+                  th:data-confirm="|O chamado #${chamado.id} e todos os seus comentários serão excluídos. Esta ação não pode ser desfeita.|">
+                <button type="submit" class="btn btn-destructive">
+                    <svg th:replace="~{fragments/icons :: icon('trash')}"></svg> Excluir
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="stack">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Descrição</h2>
+                </div>
+                <div class="card-content">
+                    <p class="descricao" th:text="${chamado.descricao}">Descrição do problema.</p>
+                </div>
+            </div>
+
+            <div class="card" id="comentarios">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        Comentários
+                        <span class="muted" th:text="|(${#lists.size(chamado.comentarios)})|">(0)</span>
+                    </h2>
+                    <p class="card-description">Histórico de interações no chamado.</p>
+                </div>
+                <div class="card-content">
+                    <ul class="timeline" th:unless="${#lists.isEmpty(chamado.comentarios)}">
+                        <li th:each="c : ${chamado.comentarios}">
+                            <span class="avatar" th:text="${#strings.substring(#strings.trim(c.autor), 0, 1)}">A</span>
+                            <div class="comment">
+                                <div class="comment-meta">
+                                    <strong th:text="${c.autor}">Ana</strong>
+                                    <span class="muted small"
+                                          th:text="${#temporals.format(c.dataCriacao, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                                </div>
+                                <div class="comment-body" th:text="${c.texto}">Comentário.</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="empty" style="padding: 24px;" th:if="${#lists.isEmpty(chamado.comentarios)}">
+                        <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('message')}"></svg></div>
+                        <p class="muted">Nenhum comentário ainda.</p>
+                    </div>
+
+                    <div class="separator"></div>
+
+                    <form method="post" novalidate th:unless="${fechado}" th:object="${comentario}"
+                          th:action="@{/app/chamados/{id}/comentarios(id=${chamado.id})}">
+                        <div class="form-grid">
+                            <div class="field" th:classappend="${#fields.hasErrors('autor')} ? 'has-error'">
+                                <label class="label" for="autor">Autor</label>
+                                <input class="input" type="text" th:field="*{autor}" maxlength="100" placeholder="Seu nome">
+                                <p class="field-error" th:if="${#fields.hasErrors('autor')}" th:errors="*{autor}"></p>
+                            </div>
+                            <div class="field full" th:classappend="${#fields.hasErrors('texto')} ? 'has-error'">
+                                <label class="label" for="texto">Comentário</label>
+                                <textarea class="textarea" th:field="*{texto}" maxlength="2000"
+                                          placeholder="Escreva uma atualização..."></textarea>
+                                <p class="field-error" th:if="${#fields.hasErrors('texto')}" th:errors="*{texto}"></p>
+                            </div>
+                        </div>
+                        <div class="actions" style="justify-content: flex-end; margin-top: 16px;">
+                            <button type="submit" class="btn">
+                                <svg th:replace="~{fragments/icons :: icon('message')}"></svg> Comentar
+                            </button>
+                        </div>
+                    </form>
+                    <div class="closed-note" th:if="${fechado}">
+                        <svg th:replace="~{fragments/icons :: icon('lock')}"></svg>
+                        Chamado fechado não recebe novos comentários.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Detalhes</h2>
+                </div>
+                <div class="card-content">
+                    <dl class="props">
+                        <dt>Status</dt>
+                        <dd><span th:replace="~{fragments/badges :: status(${chamado.status})}"></span></dd>
+                        <dt>Prioridade</dt>
+                        <dd><span th:replace="~{fragments/badges :: prioridade(${chamado.prioridade})}"></span></dd>
+                        <dt>Cliente</dt>
+                        <dd>
+                            <a th:href="@{/app/chamados(clienteId=${chamado.cliente.id})}" th:text="${chamado.cliente.nome}">Ana</a>
+                            <div class="muted small" th:text="${chamado.cliente.email}">ana@email.com</div>
+                        </dd>
+                        <dt>Categoria</dt>
+                        <dd th:text="${chamado.categoria.nome}">Rede</dd>
+                        <dt>Técnico</dt>
+                        <dd>
+                            <span th:if="${chamado.tecnico != null}" th:text="${chamado.tecnico.nome}">Bruno</span>
+                            <span th:unless="${chamado.tecnico != null}" class="muted">Não atribuído</span>
+                        </dd>
+                        <dt>Abertura</dt>
+                        <dd th:text="${#temporals.format(chamado.dataAbertura, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</dd>
+                        <dt>Fechamento</dt>
+                        <dd th:text="${chamado.dataFechamento != null ? #temporals.format(chamado.dataFechamento, 'dd/MM/yyyy HH:mm') : '—'}">—</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card" th:unless="${fechado}">
+                <div class="card-header">
+                    <h2 class="card-title">Ações rápidas</h2>
+                    <p class="card-description">Mudar para “Fechado” encerra o chamado.</p>
+                </div>
+                <div class="card-content stack">
+                    <form class="field" method="post" th:action="@{/app/chamados/{id}/status(id=${chamado.id})}">
+                        <label class="label" for="novo-status">Status</label>
+                        <div class="inline-form">
+                            <select class="select" id="novo-status" name="status">
+                                <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == chamado.status}"
+                                        th:text="#{${'StatusChamado.' + s}}">Aberto</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary">Aplicar</button>
+                        </div>
+                    </form>
+                    <form class="field" method="post" th:action="@{/app/chamados/{id}/atribuir(id=${chamado.id})}">
+                        <label class="label" for="novo-tecnico">Técnico responsável</label>
+                        <div class="inline-form">
+                            <select class="select" id="novo-tecnico" name="tecnicoId" required
+                                    th:disabled="${#lists.isEmpty(tecnicos)}">
+                                <option value="" disabled th:selected="${chamado.tecnico == null}">Selecione um técnico</option>
+                                <option th:each="t : ${tecnicos}" th:value="${t.id}"
+                                        th:selected="${chamado.tecnico != null and t.id == chamado.tecnico.id}"
+                                        th:text="${t.nome}">Bruno</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary" th:disabled="${#lists.isEmpty(tecnicos)}">Atribuir</button>
+                        </div>
+                        <p class="field-hint" th:if="${#lists.isEmpty(tecnicos)}">
+                            Nenhum técnico cadastrado. <a th:href="@{/app/tecnicos/novo}"><u>Cadastrar técnico</u></a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

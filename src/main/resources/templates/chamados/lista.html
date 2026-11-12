@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Chamados', 'chamados', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Chamados</h1>
+            <p class="page-description">Todos os chamados, do mais recente para o mais antigo.</p>
+        </div>
+        <a class="btn" th:href="@{/app/chamados/novo(clienteId=${clienteId})}">
+            <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo chamado
+        </a>
+    </div>
+
+    <div class="card">
+        <form class="toolbar" method="get" th:action="@{/app/chamados}">
+            <select class="select" name="status" aria-label="Status">
+                <option value="">Todos os status</option>
+                <option th:each="s : ${statuses}" th:value="${s}" th:selected="${s == status}"
+                        th:text="#{${'StatusChamado.' + s}}">Aberto</option>
+            </select>
+            <select class="select" name="prioridade" aria-label="Prioridade">
+                <option value="">Todas as prioridades</option>
+                <option th:each="p : ${prioridades}" th:value="${p}" th:selected="${p == prioridade}"
+                        th:text="#{${'Prioridade.' + p}}">Média</option>
+            </select>
+            <select class="select" name="clienteId" aria-label="Cliente">
+                <option value="">Todos os clientes</option>
+                <option th:each="c : ${clientes}" th:value="${c.id}" th:selected="${c.id == clienteId}"
+                        th:text="${c.nome}">Ana Souza</option>
+            </select>
+            <button type="submit" class="btn btn-secondary btn-sm">
+                <svg th:replace="~{fragments/icons :: icon('filter')}"></svg> Filtrar
+            </button>
+            <a class="btn btn-ghost btn-sm" th:href="@{/app/chamados}"
+               th:if="${status != null or prioridade != null or clienteId != null}">
+                <svg th:replace="~{fragments/icons :: icon('x')}"></svg> Limpar
+            </a>
+        </form>
+
+        <div class="table-wrap" th:unless="${pagina.empty}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Cliente</th>
+                    <th>Técnico</th>
+                    <th>Status</th>
+                    <th>Prioridade</th>
+                    <th>Abertura</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${pagina.content}">
+                    <td class="num" th:text="${c.id}">1</td>
+                    <td>
+                        <a class="link" th:href="@{/app/chamados/{id}(id=${c.id})}" th:text="${c.titulo}">Sem internet</a>
+                        <div class="muted small" th:text="${c.categoria.nome}">Rede</div>
+                    </td>
+                    <td th:text="${c.cliente.nome}">Ana Souza</td>
+                    <td>
+                        <span th:if="${c.tecnico != null}" th:text="${c.tecnico.nome}">Bruno Lima</span>
+                        <span th:unless="${c.tecnico != null}" class="muted">Não atribuído</span>
+                    </td>
+                    <td><span th:replace="~{fragments/badges :: status(${c.status})}"></span></td>
+                    <td><span th:replace="~{fragments/badges :: prioridade(${c.prioridade})}"></span></td>
+                    <td class="muted" th:text="${#temporals.format(c.dataAbertura, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${pagina.empty}">
+            <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('inbox')}"></svg></div>
+            <p class="empty-title">Nenhum chamado encontrado</p>
+            <p class="muted" th:if="${status != null or prioridade != null or clienteId != null}">
+                Ajuste ou limpe os filtros para ver mais resultados.</p>
+            <p class="muted" th:unless="${status != null or prioridade != null or clienteId != null}">
+                Abra o primeiro chamado para começar.</p>
+        </div>
+
+        <div class="pagination" th:if="${pagina.totalPages > 1}">
+            <span th:text="|Mostrando ${pagina.number * pagina.size + 1}–${pagina.number * pagina.size + pagina.numberOfElements} de ${pagina.totalElements}|">
+                Mostrando 1–10 de 42</span>
+            <div class="actions">
+                <span th:text="|Página ${pagina.number + 1} de ${pagina.totalPages}|">Página 1 de 5</span>
+                <a class="btn btn-outline btn-icon" title="Página anterior" th:if="${pagina.hasPrevious()}"
+                   th:href="@{/app/chamados(page=${pagina.number - 1}, status=${status}, prioridade=${prioridade}, clienteId=${clienteId})}">
+                    <svg th:replace="~{fragments/icons :: icon('chevron-left')}"></svg>
+                </a>
+                <button class="btn btn-outline btn-icon" disabled th:unless="${pagina.hasPrevious()}">
+                    <svg th:replace="~{fragments/icons :: icon('chevron-left')}"></svg>
+                </button>
+                <a class="btn btn-outline btn-icon" title="Próxima página" th:if="${pagina.hasNext()}"
+                   th:href="@{/app/chamados(page=${pagina.number + 1}, status=${status}, prioridade=${prioridade}, clienteId=${clienteId})}">
+                    <svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg>
+                </a>
+                <button class="btn btn-outline btn-icon" disabled th:unless="${pagina.hasNext()}">
+                    <svg th:replace="~{fragments/icons :: icon('chevron-right')}"></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

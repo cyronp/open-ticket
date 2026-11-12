@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${id == null ? 'Novo chamado' : 'Editar chamado #' + id}, 'chamados', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <a class="back-link" th:if="${id == null}" th:href="@{/app/chamados}">
+        <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> Chamados
+    </a>
+    <a class="back-link" th:unless="${id == null}" th:href="@{/app/chamados/{id}(id=${id})}">
+        <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> Chamado #<th:block th:text="${id}">1</th:block>
+    </a>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" th:text="${id == null ? 'Novo chamado' : 'Editar chamado #' + id}">Novo chamado</h1>
+            <p class="page-description" th:if="${id == null}">Todo chamado é aberto com status “Aberto”.</p>
+            <p class="page-description" th:unless="${id == null}">Ao mudar o status para “Fechado”, o chamado não pode mais ser alterado.</p>
+        </div>
+    </div>
+
+    <form class="card" method="post" novalidate th:object="${form}"
+          th:action="${id == null} ? @{/app/chamados} : @{/app/chamados/{id}(id=${id})}">
+        <div class="card-content">
+            <div class="alert alert-destructive" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                <svg th:replace="~{fragments/icons :: icon('alert')}"></svg>
+                <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Erro</div></div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field full" th:classappend="${#fields.hasErrors('titulo')} ? 'has-error'">
+                    <label class="label" for="titulo">Título</label>
+                    <input class="input" type="text" th:field="*{titulo}" maxlength="150"
+                           placeholder="Resumo do problema" autofocus>
+                    <p class="field-error" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></p>
+                </div>
+
+                <div class="field full" th:classappend="${#fields.hasErrors('descricao')} ? 'has-error'">
+                    <label class="label" for="descricao">Descrição</label>
+                    <textarea class="textarea" th:field="*{descricao}" rows="6" maxlength="2000"
+                              placeholder="Descreva o que aconteceu, quando começou e o que já foi tentado."></textarea>
+                    <p class="field-error" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></p>
+                </div>
+
+                <!-- Cliente só é escolhido na abertura -->
+                <div class="field" th:if="${id == null}" th:classappend="${#fields.hasErrors('clienteId')} ? 'has-error'">
+                    <label class="label" for="clienteId">Cliente</label>
+                    <select class="select" th:field="*{clienteId}">
+                        <option value="">Selecione um cliente</option>
+                        <option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.nome}">Ana Souza</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('clienteId')}" th:errors="*{clienteId}"></p>
+                    <p class="field-hint" th:if="${#lists.isEmpty(clientes)}">
+                        Nenhum cliente cadastrado. <a class="link" th:href="@{/app/clientes/novo}"><u>Cadastrar cliente</u></a>
+                    </p>
+                </div>
+                <div class="field" th:unless="${id == null}">
+                    <label class="label" for="cliente">Cliente</label>
+                    <input class="input" id="cliente" type="text" th:value="${chamado.cliente.nome}" disabled>
+                </div>
+
+                <div class="field" th:classappend="${#fields.hasErrors('categoriaId')} ? 'has-error'">
+                    <label class="label" for="categoriaId">Categoria</label>
+                    <select class="select" th:field="*{categoriaId}">
+                        <option value="">Selecione uma categoria</option>
+                        <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nome}">Rede</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></p>
+                    <p class="field-hint" th:if="${#lists.isEmpty(categorias)}">
+                        Nenhuma categoria cadastrada. <a class="link" th:href="@{/app/categorias/novo}"><u>Cadastrar categoria</u></a>
+                    </p>
+                </div>
+
+                <div class="field" th:classappend="${#fields.hasErrors('prioridade')} ? 'has-error'">
+                    <label class="label" for="prioridade">Prioridade</label>
+                    <select class="select" th:field="*{prioridade}">
+                        <option th:each="p : ${prioridades}" th:value="${p}" th:text="#{${'Prioridade.' + p}}">Média</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('prioridade')}" th:errors="*{prioridade}"></p>
+                </div>
+
+                <div class="field" th:classappend="${#fields.hasErrors('tecnicoId')} ? 'has-error'">
+                    <label class="label" for="tecnicoId">Técnico <span class="optional">(opcional)</span></label>
+                    <select class="select" th:field="*{tecnicoId}">
+                        <option value="">Não atribuído</option>
+                        <option th:each="t : ${tecnicos}" th:value="${t.id}" th:text="${t.nome}">Bruno Lima</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('tecnicoId')}" th:errors="*{tecnicoId}"></p>
+                </div>
+
+                <div class="field" th:unless="${id == null}" th:classappend="${#fields.hasErrors('status')} ? 'has-error'">
+                    <label class="label" for="status">Status</label>
+                    <select class="select" th:field="*{status}">
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="#{${'StatusChamado.' + s}}">Aberto</option>
+                    </select>
+                    <p class="field-error" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a class="btn btn-outline" th:href="${id == null} ? @{/app/chamados} : @{/app/chamados/{id}(id=${id})}">Cancelar</a>
+            <button type="submit" class="btn" th:text="${id == null ? 'Abrir chamado' : 'Salvar alterações'}">Salvar</button>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>
