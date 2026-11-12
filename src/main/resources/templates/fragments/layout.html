@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(titulo, secao, conteudo)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Open Ticket'">Open Ticket</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/app}">
+            <span class="brand-mark"><svg th:replace="~{fragments/icons :: icon('ticket')}"></svg></span>
+            <span>Open Ticket</span>
+        </a>
+        <div>
+            <div class="nav-label">Menu</div>
+            <nav class="nav">
+                <a th:href="@{/app}" th:classappend="${secao == 'painel'} ? 'active'">
+                    <svg th:replace="~{fragments/icons :: icon('dashboard')}"></svg><span>Visão geral</span>
+                </a>
+                <a th:href="@{/app/chamados}" th:classappend="${secao == 'chamados'} ? 'active'">
+                    <svg th:replace="~{fragments/icons :: icon('ticket')}"></svg><span>Chamados</span>
+                </a>
+                <a th:href="@{/app/clientes}" th:classappend="${secao == 'clientes'} ? 'active'">
+                    <svg th:replace="~{fragments/icons :: icon('users')}"></svg><span>Clientes</span>
+                </a>
+                <a th:href="@{/app/tecnicos}" th:classappend="${secao == 'tecnicos'} ? 'active'">
+                    <svg th:replace="~{fragments/icons :: icon('wrench')}"></svg><span>Técnicos</span>
+                </a>
+                <a th:href="@{/app/categorias}" th:classappend="${secao == 'categorias'} ? 'active'">
+                    <svg th:replace="~{fragments/icons :: icon('tag')}"></svg><span>Categorias</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <div class="main">
+        <main class="content">
+            <div class="alert alert-success" role="status" th:if="${sucesso}">
+                <svg th:replace="~{fragments/icons :: icon('check')}"></svg>
+                <div th:text="${sucesso}">Salvo.</div>
+            </div>
+            <div class="alert alert-destructive" role="alert" th:if="${erro}">
+                <svg th:replace="~{fragments/icons :: icon('alert')}"></svg>
+                <div th:text="${erro}">Erro.</div>
+            </div>
+
+            <th:block th:replace="${conteudo}"></th:block>
+        </main>
+    </div>
+</div>
+
+<!-- Confirmação de exclusão: qualquer form com data-confirm passa por aqui -->
+<dialog class="alert-dialog" id="confirmar" aria-labelledby="confirmar-titulo">
+    <h2 id="confirmar-titulo">Tem certeza?</h2>
+    <p id="confirmar-texto"></p>
+    <div class="actions">
+        <button type="button" class="btn btn-outline" data-cancelar>Cancelar</button>
+        <button type="button" class="btn btn-destructive" data-confirmar>Excluir</button>
+    </div>
+</dialog>
+
+<script>
+    (() => {
+        const dialog = document.getElementById('confirmar');
+        const texto = document.getElementById('confirmar-texto');
+        let pendente = null;
+
+        document.addEventListener('submit', (evento) => {
+            const form = evento.target;
+            if (!form.dataset.confirm) return;
+            evento.preventDefault();
+            pendente = form;
+            texto.textContent = form.dataset.confirm;
+            dialog.showModal();
+        });
+
+        dialog.querySelector('[data-cancelar]').addEventListener('click', () => dialog.close());
+        dialog.querySelector('[data-confirmar]').addEventListener('click', () => {
+            const form = pendente;
+            dialog.close();
+            if (form) form.submit(); // submit() não dispara o evento de novo
+        });
+        dialog.addEventListener('close', () => { pendente = null; });
+    })();
+</script>
+</body>
+</html>

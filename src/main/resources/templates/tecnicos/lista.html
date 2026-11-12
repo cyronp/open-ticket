@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Técnicos', 'tecnicos', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Técnicos</h1>
+            <p class="page-description">Equipe que atende os chamados.</p>
+        </div>
+        <a class="btn" th:href="@{/app/tecnicos/novo}">
+            <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo técnico
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(tecnicos)}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th class="cell-actions"><span class="sr-only">Ações</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${tecnicos}">
+                    <td class="num" th:text="${t.id}">1</td>
+                    <td class="link" th:text="${t.nome}">Bruno Lima</td>
+                    <td class="muted" th:text="${t.email}">bruno@empresa.com</td>
+                    <td><span th:replace="~{fragments/badges :: perfil(${t.perfil})}"></span></td>
+                    <td class="cell-actions">
+                        <a class="btn btn-ghost btn-icon" title="Editar" th:href="@{/app/tecnicos/{id}/editar(id=${t.id})}">
+                            <svg th:replace="~{fragments/icons :: icon('pencil')}"></svg>
+                        </a>
+                        <form method="post" th:action="@{/app/tecnicos/{id}/excluir(id=${t.id})}"
+                              th:data-confirm="|O técnico ${t.nome} será excluído. Esta ação não pode ser desfeita.|">
+                            <button type="submit" class="btn btn-ghost btn-icon danger" title="Excluir">
+                                <svg th:replace="~{fragments/icons :: icon('trash')}"></svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(tecnicos)}">
+            <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('wrench')}"></svg></div>
+            <p class="empty-title">Nenhum técnico cadastrado</p>
+            <p class="muted">Cadastre técnicos para atribuir chamados.</p>
+            <a class="btn" th:href="@{/app/tecnicos/novo}">
+                <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo técnico
+            </a>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

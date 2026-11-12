@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<span th:fragment="status(valor)" class="badge" th:classappend="${'badge-' + valor}"
+      th:text="#{${'StatusChamado.' + valor}}">Aberto</span>
+
+<span th:fragment="prioridade(valor)" class="badge" th:classappend="${'badge-' + valor}"
+      th:text="#{${'Prioridade.' + valor}}">Média</span>
+
+<span th:fragment="perfil(valor)" class="badge plain" th:classappend="${'badge-' + valor}"
+      th:text="#{${'Perfil.' + valor}}">Técnico</span>
+</body>
+</html>
