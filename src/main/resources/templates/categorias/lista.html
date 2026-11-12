@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Categorias', 'categorias', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Categorias</h1>
+            <p class="page-description">Tipos de problema usados para classificar os chamados.</p>
+        </div>
+        <a class="btn" th:href="@{/app/categorias/novo}">
+            <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Nova categoria
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(categorias)}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Descrição</th>
+                    <th class="cell-actions"><span class="sr-only">Ações</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${categorias}">
+                    <td class="num" th:text="${c.id}">1</td>
+                    <td class="link" th:text="${c.nome}">Rede</td>
+                    <td class="muted" th:text="${#strings.isEmpty(c.descricao) ? '—' : c.descricao}">Problemas de conexão</td>
+                    <td class="cell-actions">
+                        <a class="btn btn-ghost btn-icon" title="Editar" th:href="@{/app/categorias/{id}/editar(id=${c.id})}">
+                            <svg th:replace="~{fragments/icons :: icon('pencil')}"></svg>
+                        </a>
+                        <form method="post" th:action="@{/app/categorias/{id}/excluir(id=${c.id})}"
+                              th:data-confirm="|A categoria ${c.nome} será excluída. Esta ação não pode ser desfeita.|">
+                            <button type="submit" class="btn btn-ghost btn-icon danger" title="Excluir">
+                                <svg th:replace="~{fragments/icons :: icon('trash')}"></svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(categorias)}">
+            <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('tag')}"></svg></div>
+            <p class="empty-title">Nenhuma categoria cadastrada</p>
+            <p class="muted">Todo chamado precisa de uma categoria.</p>
+            <a class="btn" th:href="@{/app/categorias/novo}">
+                <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Nova categoria
+            </a>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(${id == null ? 'Novo cliente' : 'Editar cliente'}, 'clientes', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <a class="back-link" th:href="@{/app/clientes}">
+        <svg th:replace="~{fragments/icons :: icon('arrow-left')}"></svg> Clientes
+    </a>
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" th:text="${id == null ? 'Novo cliente' : 'Editar cliente'}">Novo cliente</h1>
+            <p class="page-description">O e-mail é único por cliente.</p>
+        </div>
+    </div>
+
+    <form class="card" method="post" novalidate th:object="${form}"
+          th:action="${id == null} ? @{/app/clientes} : @{/app/clientes/{id}(id=${id})}">
+        <div class="card-content">
+            <div class="alert alert-destructive" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                <svg th:replace="~{fragments/icons :: icon('alert')}"></svg>
+                <div><div th:each="e : ${#fields.globalErrors()}" th:text="${e}">Erro</div></div>
+            </div>
+
+            <div class="form-grid">
+                <div class="field full" th:classappend="${#fields.hasErrors('nome')} ? 'has-error'">
+                    <label class="label" for="nome">Nome</label>
+                    <input class="input" type="text" th:field="*{nome}" maxlength="100" placeholder="Ana Souza" autofocus>
+                    <p class="field-error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></p>
+                </div>
+                <div class="field" th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
+                    <label class="label" for="email">E-mail</label>
+                    <input class="input" type="email" th:field="*{email}" placeholder="ana@empresa.com">
+                    <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+                </div>
+                <div class="field" th:classappend="${#fields.hasErrors('telefone')} ? 'has-error'">
+                    <label class="label" for="telefone">Telefone <span class="optional">(opcional)</span></label>
+                    <input class="input" type="tel" th:field="*{telefone}" maxlength="20" placeholder="(11) 99999-0000">
+                    <p class="field-error" th:if="${#fields.hasErrors('telefone')}" th:errors="*{telefone}"></p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <a class="btn btn-outline" th:href="@{/app/clientes}">Cancelar</a>
+            <button type="submit" class="btn" th:text="${id == null ? 'Cadastrar cliente' : 'Salvar alterações'}">Salvar</button>
+        </div>
+    </form>
+</th:block>
+</body>
+</html>

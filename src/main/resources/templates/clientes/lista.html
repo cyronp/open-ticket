@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout('Clientes', 'clientes', ~{::conteudo})}">
+<body>
+<th:block th:fragment="conteudo">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Clientes</h1>
+            <p class="page-description">Quem abre chamados no sistema.</p>
+        </div>
+        <a class="btn" th:href="@{/app/clientes/novo}">
+            <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo cliente
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(clientes)}">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Telefone</th>
+                    <th class="cell-actions"><span class="sr-only">Ações</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c : ${clientes}">
+                    <td class="num" th:text="${c.id}">1</td>
+                    <td class="link" th:text="${c.nome}">Ana Souza</td>
+                    <td class="muted" th:text="${c.email}">ana@email.com</td>
+                    <td th:text="${c.telefone ?: '—'}" th:classappend="${c.telefone == null} ? 'muted'">11 99999-0000</td>
+                    <td class="cell-actions">
+                        <a class="btn btn-ghost btn-sm" th:href="@{/app/chamados(clienteId=${c.id})}">
+                            <svg th:replace="~{fragments/icons :: icon('ticket')}"></svg> Chamados
+                        </a>
+                        <a class="btn btn-ghost btn-icon" title="Editar" th:href="@{/app/clientes/{id}/editar(id=${c.id})}">
+                            <svg th:replace="~{fragments/icons :: icon('pencil')}"></svg>
+                        </a>
+                        <form method="post" th:action="@{/app/clientes/{id}/excluir(id=${c.id})}"
+                              th:data-confirm="|O cliente ${c.nome} será excluído. Esta ação não pode ser desfeita.|">
+                            <button type="submit" class="btn btn-ghost btn-icon danger" title="Excluir">
+                                <svg th:replace="~{fragments/icons :: icon('trash')}"></svg>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty" th:if="${#lists.isEmpty(clientes)}">
+            <div class="empty-icon"><svg th:replace="~{fragments/icons :: icon('users')}"></svg></div>
+            <p class="empty-title">Nenhum cliente cadastrado</p>
+            <p class="muted">Cadastre um cliente para poder abrir chamados.</p>
+            <a class="btn" th:href="@{/app/clientes/novo}">
+                <svg th:replace="~{fragments/icons :: icon('plus')}"></svg> Novo cliente
+            </a>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>
