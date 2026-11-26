@@ -9,6 +9,8 @@ import com.openticket.dto.ChamadoStatusRequest;
 import com.openticket.dto.ComentarioRequest;
 import com.openticket.dto.ComentarioResponse;
 import com.openticket.entity.*;
+import com.openticket.evento.EventoOutbox;
+import com.openticket.evento.EventoOutboxRepository;
 import com.openticket.exception.ChamadoFechadoException;
 import com.openticket.exception.OrdenacaoInvalidaException;
 import com.openticket.exception.RecursoNaoEncontradoException;
@@ -39,19 +41,22 @@ public class ChamadoService {
     private final CategoriaRepository categoriaRepository;
     private final TecnicoRepository tecnicoRepository;
     private final ComentarioRepository comentarioRepository;
+    private final EventoOutboxRepository eventoOutboxRepository;
 
     public ChamadoService(
             ChamadoRepository repository,
             ClienteRepository clienteRepository,
             CategoriaRepository categoriaRepository,
             TecnicoRepository tecnicoRepository,
-            ComentarioRepository comentarioRepository
+            ComentarioRepository comentarioRepository,
+            EventoOutboxRepository eventoOutboxRepository
     ) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
         this.categoriaRepository = categoriaRepository;
         this.tecnicoRepository = tecnicoRepository;
         this.comentarioRepository = comentarioRepository;
+        this.eventoOutboxRepository = eventoOutboxRepository;
     }
 
     @Transactional
@@ -64,7 +69,13 @@ public class ChamadoService {
                 buscarCategoria(dto.categoriaId()),
                 buscarTecnico(dto.tecnicoId())
         );
-        return ChamadoResponse.de(repository.save(chamado));
+        Chamado salvo = repository.save(chamado);
+
+        // Outbox: o evento é gravado na mesma transação do chamado
+        eventoOutboxRepository.save(
+                EventoOutbox.novo("chamado.aberto", salvo.getId(), salvo.getPrioridade().name()));
+
+        return ChamadoResponse.de(salvo);
     }
 
     @Transactional(readOnly = true)
